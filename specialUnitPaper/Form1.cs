@@ -44,7 +44,7 @@ namespace specialUnitPaper
                 {
                     selectedFilePath = openFileDialog.FileName;
 
-                    infoLabel.Text = "Файл: " + selectedFilePath;
+                    infoLabel.Text = selectedFilePath;
 
                 }
             }
@@ -59,7 +59,7 @@ namespace specialUnitPaper
                 /*Visible = true,
                 ScreenUpdating = true*/
             };
-            
+
             try
             {
                 // Открываем документ
@@ -95,7 +95,7 @@ namespace specialUnitPaper
             }
             finally
             {
-                
+
                 // Закрываем приложение Word
                 wordApp.Quit();
             }
@@ -248,7 +248,7 @@ namespace specialUnitPaper
             footerParagraph.Range.InsertBefore($"{textBox_footer.Text} /");
 
             // Вставляем текст и дату после поля номера страницы
-            footerParagraph.Range.InsertAfter("\n" + dateTextBox.Text.Replace(',','.'));
+            footerParagraph.Range.InsertAfter("\n" + dateTextBox.Text.Replace(',', '.'));
 
             // Устанавливаем шрифт и размер для текста
             Word.Font footerFont = footerParagraph.Range.Font;
@@ -259,6 +259,8 @@ namespace specialUnitPaper
 
         private void button1_Click(object sender, EventArgs e)
         {
+            infoLabel.Text = "Процесс маркировки запущен";
+
             string sourceFolderPath = Path.GetDirectoryName(selectedFilePath);
 
             string fileName = Path.GetFileName(selectedFilePath);
@@ -269,7 +271,69 @@ namespace specialUnitPaper
 
             funcWordDocument(newFilePath);
 
-            infoLabel.Text = "Генерация завершена!";
+            infoLabel.Text = "Генерация завершена";
+
+            openDoc(newFilePath);
+
+        }
+
+        private void openDoc(string filePath)
+        {
+            // Создаем приложение Microsoft Word
+            Word.Application wordApp = new Word.Application();
+
+            try
+            {
+                // Открываем документ
+                Word.Document doc = wordApp.Documents.Open(filePath);
+
+                // Видимость документа
+                wordApp.Visible = true;
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Произошла ошибка при открытии документа: " + ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                // Освобождаем ресурсы, даже если возникла ошибка
+                //if (wordApp != null)
+                //{
+                //    wordApp.Quit();
+                //    System.Runtime.InteropServices.Marshal.ReleaseComObject(wordApp);
+                //}
+            }
+        }
+
+        private void label2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void StartNumberNumeric_ValueChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBox_footer_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void dateTextBox_MaskInputRejected(object sender, MaskInputRejectedEventArgs e)
+        {
+
+        }
+
+        private void checkBox_doublePrint_CheckedChanged(object sender, EventArgs e)
+        {
+
         }
 
 
