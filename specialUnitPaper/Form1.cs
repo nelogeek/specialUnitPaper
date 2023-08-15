@@ -1,5 +1,4 @@
-﻿using Microsoft.Office.Interop.Word;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -11,7 +10,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml.Linq;
+
 using Word = Microsoft.Office.Interop.Word;
+using iTextSharp.text;
+using iTextSharp.text.pdf;
+using iTextSharp.text.pdf.parser;
+using Microsoft.Office.Interop.Word;
 
 namespace specialUnitPaper
 {
@@ -32,6 +36,8 @@ namespace specialUnitPaper
         }
 
         string selectedFilePath;
+        string newFilePath;
+
 
         private void buttonSelectFile_Click(object sender, EventArgs e)
         {
@@ -50,39 +56,49 @@ namespace specialUnitPaper
             }
         }
 
-
-        private void funcWordDocument(string filePath)
+        private void button1_Click(object sender, EventArgs e)
         {
-            // Создаем приложение Microsoft Word
-            Word.Application wordApp = new Word.Application()
-            {
-                /*Visible = true,
-                ScreenUpdating = true*/
-            };
+            infoLabel.Text = "Процесс маркировки запущен";
+
+            func();
+
+            infoLabel.Text = "Генерация завершена";
+
+            openDoc(newFilePath);
+
+        }
+
+
+
+        private void func()
+        {
 
             try
             {
-                // Открываем документ
-                Document doc = wordApp.Documents.Open(filePath);
 
 
-                AddEmptyPages(doc);
+                string sourceFolderPath = System.IO.Path.GetDirectoryName(selectedFilePath);
 
-                if (checkBox_doublePrint.Checked)
-                {
-                    addFootersDoublePrint(doc);
-                }
-                else
-                {
-                    addFootersSinglePrint(doc);
-                }
+                string fileName = System.IO.Path.GetFileName(selectedFilePath);
 
+                newFilePath = System.IO.Path.Combine(sourceFolderPath, "копия_" + fileName);
 
-                // Сохраняем и закрываем документ
-                doc.Save();
-                doc.Close();
+                File.Copy(selectedFilePath, newFilePath, true);
 
+                // Конвертировать документ в PDF
+                string pdfFilePath = ConvertDocxToPdf(newFilePath);
 
+                // Добавить пустые страницы через одну
+                string modifiedPdfFilePath = AddEmptyPages(pdfFilePath);
+
+                // Конвертировать PDF обратно в документ Word
+                string finalDocxFilePath = ConvertToDocx(modifiedPdfFilePath, newFilePath);
+
+                addFooters(finalDocxFilePath);
+
+                deleteTempFiles(pdfFilePath, modifiedPdfFilePath);
+
+                Console.WriteLine("Процесс завершен.");
             }
             catch (FileNotFoundException ex)
             {
@@ -93,36 +109,69 @@ namespace specialUnitPaper
             {
                 MessageBox.Show("Произошла ошибка: " + ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+            
+        }
+
+        static void deleteTempFiles(string pdfFilePath, string modifiedPdfFilePath)
+        {
+            DeleteFileIfExists(pdfFilePath);
+            DeleteFileIfExists(modifiedPdfFilePath);
+
+        }
+
+        static void DeleteFileIfExists(string filePath)
+        {
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+                Console.WriteLine($"Файл {filePath} удален");
+            }
+            else
+            {
+                Console.WriteLine($"Файл {filePath} не удален");
+            }
+        }
+
+        private void addFooters(string filePath)
+        {
+            Console.WriteLine("Добавление колонтитулов");
+            Word.Application wordApp = new Word.Application();
+            Word.Document doc = null;
+
+            try
+            {
+                // Открываем документ
+                doc = wordApp.Documents.Open(filePath);
+                {
+                    /*Visible = true,
+                    ScreenUpdating = true*/
+                };
+                if (checkBox_doublePrint.Checked)
+                {
+                    addFootersDoublePrint(doc);
+                }
+                else
+                {
+                    addFootersSinglePrint(doc);
+                }
+                doc.Save();
+            }
+            catch (Exception ex) { MessageBox.Show("Произошла ошибка: " + ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error); }
             finally
             {
-
-                // Закрываем приложение Word
+                // Закрываем документ и приложение
+                
+                doc?.Close();
                 wordApp.Quit();
-            }
-
-        }
-
-
-        private void AddEmptyPages(Document doc)
-        {
-            // Получаем количество страниц в документе
-            int pageCount = doc.ComputeStatistics(Word.WdStatistic.wdStatisticPages, false);
-
-            // Вычисляем общее количество страниц после добавления пустых страниц
-            int totalPageCount = pageCount * 2;
-
-            // Добавляем пустую страницу после каждой существующей страницы
-            for (int i = 2; i < totalPageCount; i += 2)
-            {
-                object breakType = Word.WdBreakType.wdPageBreak;
-                Word.Range range = doc.GoTo(Word.WdGoToItem.wdGoToPage, Word.WdGoToDirection.wdGoToAbsolute, i);
-                range.InsertBreak(ref breakType);
+                ReleaseComObject(doc);
+                ReleaseComObject(wordApp);
             }
         }
 
+        
 
 
-        private void addFootersDoublePrint(Document doc)
+        private void addFootersDoublePrint(Word.Document doc)
         {
             object oMissing = Type.Missing;
             Object defaultTableBehavior = Word.WdDefaultTableBehavior.wdWord9TableBehavior;
@@ -155,18 +204,18 @@ namespace specialUnitPaper
             footerTable.Borders.Enable = 0;
 
             // Добавляем текст и дату в левый столбец
-            Range rangeCell = footerTable.Cell(1, 2).Range;
+            Word.Range rangeCell = footerTable.Cell(1, 2).Range;
 
-            Paragraph paragraphCell = rangeCell.Paragraphs.Add(rangeCell);
+            Word.Paragraph paragraphCell = rangeCell.Paragraphs.Add(rangeCell);
 
-            Range paragraphRange = paragraphCell.Range;
+            Word.Range paragraphRange = paragraphCell.Range;
 
             // Вставляем текст и дату после поля номера страницы
             paragraphRange.Fields.Add(paragraphRange, Word.WdFieldType.wdFieldPage, "page", false);
             rangeCell.InsertBefore($"{textBox_footer.Text} /");
             rangeCell.InsertAfter("\n" + dateTextBox.Text.Replace(',', '.'));
 
-            rangeCell.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphRight;
+            rangeCell.ParagraphFormat.Alignment = Word.WdParagraphAlignment.wdAlignParagraphRight;
 
             // Устанавливаем шрифт и размер для текста в левом столбце
             Word.Font oddPageFooterFont = footerTable.Cell(1, 1).Range.Font;
@@ -181,13 +230,13 @@ namespace specialUnitPaper
             evenPageFooterParagraph.Range.ParagraphFormat.Alignment = Word.WdParagraphAlignment.wdAlignParagraphLeft;
 
             // Создаем таблицу в футере (1 строка, 2 столбца)
-            Table footerTablen = evenPageFooter.Range.Tables.Add(evenPageFooterParagraph.Range, 1, 2, ref defaultTableBehavior, ref autoFitBehavior);
+            Word.Table footerTablen = evenPageFooter.Range.Tables.Add(evenPageFooterParagraph.Range, 1, 2, ref defaultTableBehavior, ref autoFitBehavior);
 
             footerTablen.Borders.Enable = 0;
 
             // Добавляем текст и дату в правый столбец
             // Добавляем поле для номера страницы
-            Range rangeCelln = footerTablen.Cell(1, 1).Range;
+            Word.Range rangeCelln = footerTablen.Cell(1, 1).Range;
 
             paragraphCell = rangeCelln.Paragraphs.Add(rangeCelln);
 
@@ -198,7 +247,7 @@ namespace specialUnitPaper
             rangeCelln.InsertBefore($"{textBox_footer.Text} /");
             rangeCelln.InsertAfter("\n" + dateTextBox.Text.Replace(',', '.'));
 
-            rangeCelln.ParagraphFormat.Alignment = WdParagraphAlignment.wdAlignParagraphLeft;
+            rangeCelln.ParagraphFormat.Alignment = Word.WdParagraphAlignment.wdAlignParagraphLeft;
 
             // Устанавливаем шрифт и размер для текста в правом столбце
             Word.Font evenPageFooterFont = footerTablen.Cell(1, 1).Range.Font;
@@ -223,7 +272,7 @@ namespace specialUnitPaper
 
 
 
-        private void addFootersSinglePrint(Document doc)
+        private void addFootersSinglePrint(Word.Document doc)
         {
             object oMissing = Type.Missing;
             Object defaultTableBehavior = Word.WdDefaultTableBehavior.wdWord9TableBehavior;
@@ -257,28 +306,12 @@ namespace specialUnitPaper
 
         }
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-            infoLabel.Text = "Процесс маркировки запущен";
 
-            string sourceFolderPath = Path.GetDirectoryName(selectedFilePath);
-
-            string fileName = Path.GetFileName(selectedFilePath);
-
-            string newFilePath = Path.Combine(sourceFolderPath, "копия_" + fileName);
-
-            File.Copy(selectedFilePath, newFilePath, true);
-
-            funcWordDocument(newFilePath);
-
-            infoLabel.Text = "Генерация завершена";
-
-            openDoc(newFilePath);
-
-        }
 
         private void openDoc(string filePath)
         {
+            Console.WriteLine("Открытие документа");
+
             // Создаем приложение Microsoft Word
             Word.Application wordApp = new Word.Application();
 
@@ -306,185 +339,94 @@ namespace specialUnitPaper
             }
         }
 
-        private void label2_Click(object sender, EventArgs e)
+
+        static string ConvertDocxToPdf(string docxFilePath)
         {
+            Console.WriteLine("Конвертирование из docx в pdf");
+            string pdfFilePath = System.IO.Path.ChangeExtension(docxFilePath, ".pdf");
+
+            Word.Application wordApp = new Word.Application();
+            Word.Document doc = null;
+
+            try
+            {
+                // Открываем документ Word
+                doc = wordApp.Documents.Open(docxFilePath);
+
+                // Сохраняем как PDF
+                doc.SaveAs2(pdfFilePath, WdSaveFormat.wdFormatPDF);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка при конвертации в PDF: {ex.Message}");
+            }
+            finally
+            {
+                // Закрываем документ и приложение
+                doc?.Close();
+                wordApp.Quit();
+                ReleaseComObject(doc);
+                ReleaseComObject(wordApp);
+            }
+
+            return pdfFilePath;
+        }
+
+        // Метод для явного освобождения COM-объектов
+        static void ReleaseComObject(object obj)
+        {
+            try
+            {
+                if (obj != null)
+                {
+                    System.Runtime.InteropServices.Marshal.ReleaseComObject(obj);
+                    obj = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Ошибка при освобождении COM-объекта: {ex.Message}");
+            }
+        }
+
+        // Функция для добавления пустых страниц через одну
+        private static string AddEmptyPages(string pdfFilePath)
+        {
+            try
+            {
+                string modifiedPdfFilePath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(pdfFilePath), "modified_" + System.IO.Path.GetFileName(pdfFilePath));
+                PdfReader reader = new PdfReader(pdfFilePath);
+                PdfStamper stamper = new PdfStamper(reader, new FileStream(modifiedPdfFilePath, FileMode.Create));
+
+                int total = reader.NumberOfPages + 1;
+                for (int pageNumber = total; pageNumber > 1; pageNumber--)
+                {
+                    stamper.InsertPage(pageNumber, PageSize.A4);
+                }
+                stamper.Close();
+                reader.Close();
+
+                return modifiedPdfFilePath;
+            }
+            catch (Exception ex)
+            {
+                return "-1";
+            }
 
         }
 
-        private void label1_Click(object sender, EventArgs e)
+        // Функция для конвертации PDF обратно в документ Word
+        static string ConvertToDocx(string pdfFilePath, string originalDocxFilePath)
         {
+            string finalDocxFilePath = originalDocxFilePath; // Переписываем существующий файл
+            Word.Application wordApp = new Word.Application();
+            Word.Document doc = wordApp.Documents.Open(pdfFilePath);
+            doc.SaveAs2(finalDocxFilePath);
+            doc.Close();
+            wordApp.Quit();
 
+            return finalDocxFilePath;
         }
-
-        private void StartNumberNumeric_ValueChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void textBox_footer_TextChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void dateTextBox_MaskInputRejected(object sender, MaskInputRejectedEventArgs e)
-        {
-
-        }
-
-        private void checkBox_doublePrint_CheckedChanged(object sender, EventArgs e)
-        {
-
-        }
-
-
-
-
-        /*private void addFootersDoublePrint(Document doc)
-        {
-            object oMissing = Type.Missing;
-            Object defaultTableBehavior = Word.WdDefaultTableBehavior.wdWord9TableBehavior;
-            Object autoFitBehavior = Word.WdAutoFitBehavior.wdAutoFitWindow;
-
-
-            doc.Sections[1].PageSetup.OddAndEvenPagesHeaderFooter = -1; // -1 = true  -  настройка: четные-нечетные страницы
-            Word.Range headerRange = doc.Sections[1].Footers[Word.WdHeaderFooterIndex.wdHeaderFooterPrimary].Range;
-
-            doc.Sections[1].Headers[Word.WdHeaderFooterIndex.wdHeaderFooterPrimary].LinkToPrevious = false;
-            doc.Sections[1].Headers[Word.WdHeaderFooterIndex.wdHeaderFooterPrimary].PageNumbers.RestartNumberingAtSection = true;
-            doc.Sections[1].Headers[Word.WdHeaderFooterIndex.wdHeaderFooterPrimary].PageNumbers.StartingNumber = (int)StartNumberNumeric.Value; // номер первой страницы
-
-            headerRange.InsertAfter(" " + DateTime.Now.ToString("dd.MM.yyyy"));
-
-            // колонтитул нечетной страницы
-            doc.Tables.Add(headerRange, 2, 2, ref defaultTableBehavior, ref autoFitBehavior);
-
-            Word.Table headerTable = headerRange.Tables[1];
-
-            
-
-            headerTable.Cell(2, 1).Merge(headerTable.Cell(2, 2));
-
-            headerTable.Borders.Enable = 1;
-            Word.Range rangePageNum = headerTable.Cell(1,2).Range;
-            rangePageNum.Collapse(Word.WdCollapseDirection.wdCollapseStart);
-            Word.Field fld = rangePageNum.Document.Fields.Add(rangePageNum, oMissing, "Page", false);
-            Word.Range rangeFieldPageNum = fld.Result;
-            rangeFieldPageNum.Collapse(Word.WdCollapseDirection.wdCollapseEnd);
-
-            headerTable.Cell(1, 2).Range.Font.Size = 10;
-
-            
-            // колонтитул четных страниц
-            headerRange = doc.Sections[1].Footers[Word.WdHeaderFooterIndex.wdHeaderFooterEvenPages].Range;
-
-            doc.Tables.Add(headerRange, 2, 2, ref defaultTableBehavior, ref autoFitBehavior);
-
-            headerTable = headerRange.Tables[1];
-            headerTable.Columns[1].PreferredWidth = 4f;
-            headerTable.Columns[2].PreferredWidth = 4f;
-            headerTable.Cell(2, 1).Merge(headerTable.Cell(2, 2));
-
-            headerTable.Borders.Enable = 1;
-            rangePageNum = rangePageNum = headerTable.Cell(1, 2).Range;
-            rangePageNum.Collapse(Word.WdCollapseDirection.wdCollapseStart);
-            fld = rangePageNum.Document.Fields.Add(rangePageNum, oMissing, "Page", false);
-            rangeFieldPageNum = fld.Result;
-            rangeFieldPageNum.Collapse(Word.WdCollapseDirection.wdCollapseEnd);
-            
-            headerTable.Cell(1, 1).Range.Font.Size = 10;
-        }*/
-
-
-        /*private void addFootersDoublePrint(Document doc)
-        {
-            object oMissing = Type.Missing;
-            Object defaultTableBehavior = Word.WdDefaultTableBehavior.wdWord9TableBehavior;
-            Object autoFitBehavior = Word.WdAutoFitBehavior.wdAutoFitWindow;
-
-            doc.Sections[1].PageSetup.OddAndEvenPagesHeaderFooter = -1; // -1 = true - настройка: четные-нечетные страницы
-            Word.Range headerRange = doc.Sections[1].Footers[Word.WdHeaderFooterIndex.wdHeaderFooterPrimary].Range;
-
-            doc.Sections[1].Headers[Word.WdHeaderFooterIndex.wdHeaderFooterPrimary].LinkToPrevious = false;
-            doc.Sections[1].Headers[Word.WdHeaderFooterIndex.wdHeaderFooterPrimary].PageNumbers.RestartNumberingAtSection = true;
-            doc.Sections[1].Headers[Word.WdHeaderFooterIndex.wdHeaderFooterPrimary].PageNumbers.StartingNumber = (int)StartNumberNumeric.Value; // номер первой страницы
-
-            // колонтитул нечетной страницы
-            // расположение в правом углу
-            headerRange.ParagraphFormat.Alignment = Word.WdParagraphAlignment.wdAlignParagraphRight;
-
-            doc.Tables.Add(headerRange, 2, 2, ref defaultTableBehavior, ref autoFitBehavior);
-
-            Word.Table headerTable = headerRange.Tables[1];
-
-            // Устанавливаем размер таблицы
-            *//*headerTable.PreferredWidth = 3f;*//*
-            // Устанавливаем выравнивание таблицы в правом углу
-            headerRange.ParagraphFormat.Alignment = Word.WdParagraphAlignment.wdAlignParagraphRight;
-
-
-            headerTable.Cell(2, 1).Merge(headerTable.Cell(2, 2));
-
-            headerTable.Borders.Enable = 1;
-
-            Word.Range rangePageNum = headerTable.Cell(1, 2).Range;
-            rangePageNum.Collapse(Word.WdCollapseDirection.wdCollapseStart);
-            Word.Field fld = rangePageNum.Document.Fields.Add(rangePageNum, oMissing, "Page", false);
-            Word.Range rangeFieldPageNum = fld.Result;
-            rangeFieldPageNum.Collapse(Word.WdCollapseDirection.wdCollapseEnd);
-
-            headerTable.Cell(1, 1).PreferredWidthType = Word.WdPreferredWidthType.wdPreferredWidthAuto;
-            headerTable.Cell(1, 2).Width = 0f;
-            headerTable.Cell(2, 1).PreferredWidthType = Word.WdPreferredWidthType.wdPreferredWidthAuto;
-
-            headerTable.Cell(1, 1).Range.Text = textBox_footer.Text;
-            headerTable.Cell(2, 1).Range.Text = DateTime.Now.ToString("dd.MM.yyyy");
-
-            headerTable.Cell(1, 2).Range.Font.Size = 10;
-
-            
-
-            // колонтитул четных страниц
-            headerRange = doc.Sections[1].Footers[Word.WdHeaderFooterIndex.wdHeaderFooterEvenPages].Range;
-
-            doc.Tables.Add(headerRange, 2, 2, ref defaultTableBehavior, ref autoFitBehavior);
-
-            headerTable = headerRange.Tables[1];
-
-            // Устанавливаем размер таблицы
-           *//* headerTable.PreferredWidth = 3f;*//*
-            // Устанавливаем выравнивание таблицы в правом углу
-            headerRange.ParagraphFormat.Alignment = Word.WdParagraphAlignment.wdAlignParagraphRight;
-
-
-            headerTable.Cell(2, 1).Merge(headerTable.Cell(2, 2));
-
-            headerTable.Borders.Enable = 1;
-
-            rangePageNum = headerTable.Cell(1, 2).Range;
-            rangePageNum.Collapse(Word.WdCollapseDirection.wdCollapseStart);
-            fld = rangePageNum.Document.Fields.Add(rangePageNum, oMissing, "Page", false);
-            rangeFieldPageNum = fld.Result;
-            rangeFieldPageNum.Collapse(Word.WdCollapseDirection.wdCollapseEnd);
-
-            headerTable.Cell(1, 1).Width = 200;
-            headerTable.Cell(1, 2).Width = 20;
-            
-
-            headerTable.Cell(1, 1).Range.Text = textBox_footer.Text;
-            headerTable.Cell(2, 1).Range.Text = DateTime.Now.ToString("dd.MM.yyyy");
-
-            headerTable.Cell(1, 2).Range.Font.Size = 10;
-
-        }*/
-
-
-
-
-
-
-
-
-
 
     }
 }

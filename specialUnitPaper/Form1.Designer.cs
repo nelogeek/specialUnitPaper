@@ -80,7 +80,6 @@
             0,
             0,
             0});
-            this.StartNumberNumeric.ValueChanged += new System.EventHandler(this.StartNumberNumeric_ValueChanged);
             // 
             // textBox_footer
             // 
@@ -91,7 +90,6 @@
             this.textBox_footer.Size = new System.Drawing.Size(258, 26);
             this.textBox_footer.TabIndex = 3;
             this.textBox_footer.Text = "Учтенный лист № 19с";
-            this.textBox_footer.TextChanged += new System.EventHandler(this.textBox_footer_TextChanged);
             // 
             // checkBox_doublePrint
             // 
@@ -105,7 +103,6 @@
             this.checkBox_doublePrint.TabIndex = 4;
             this.checkBox_doublePrint.Text = "Двусторонняя печать";
             this.checkBox_doublePrint.UseVisualStyleBackColor = true;
-            this.checkBox_doublePrint.CheckedChanged += new System.EventHandler(this.checkBox_doublePrint_CheckedChanged);
             // 
             // button1
             // 
@@ -127,7 +124,6 @@
             this.label1.Size = new System.Drawing.Size(84, 15);
             this.label1.TabIndex = 6;
             this.label1.Text = "Нумерация с ";
-            this.label1.Click += new System.EventHandler(this.label1_Click);
             // 
             // dateTextBox
             // 
@@ -139,7 +135,6 @@
             this.dateTextBox.TabIndex = 7;
             this.dateTextBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
             this.dateTextBox.ValidatingType = typeof(System.DateTime);
-            this.dateTextBox.MaskInputRejected += new System.Windows.Forms.MaskInputRejectedEventHandler(this.dateTextBox_MaskInputRejected);
             // 
             // label2
             // 
@@ -150,7 +145,6 @@
             this.label2.Size = new System.Drawing.Size(117, 15);
             this.label2.TabIndex = 8;
             this.label2.Text = "Текст колонтитула";
-            this.label2.Click += new System.EventHandler(this.label2_Click);
             // 
             // label3
             // 
