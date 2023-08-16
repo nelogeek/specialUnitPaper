@@ -210,10 +210,11 @@ namespace specialUnitPaper
 
             Word.Range paragraphRange = paragraphCell.Range;
 
-            // Вставляем текст и дату после поля номера страницы
-            paragraphRange.Fields.Add(paragraphRange, Word.WdFieldType.wdFieldPage, "page", false);
-            rangeCell.InsertBefore($"{textBox_footer.Text} /");
-            rangeCell.InsertAfter("\n" + dateTextBox.Text.Replace(',', '.'));
+            // Вставляем текст и дату до и после поля номера страницы
+            //paragraphRange.Fields.Add(paragraphRange, Word.WdFieldType.wdFieldPage, "page", false);
+            rangeCell.InsertBefore($"{textBox2.Text}");
+            rangeCell.InsertAfter(/*"\n" + */ dateTextBox.Text.Replace(',', '.'));
+            
 
             rangeCell.ParagraphFormat.Alignment = Word.WdParagraphAlignment.wdAlignParagraphRight;
 
@@ -294,7 +295,7 @@ namespace specialUnitPaper
             // Добавляем поле для номера страницы
             Word.Field pageNumberField = footerParagraph.Range.Fields.Add(footerParagraph.Range, Word.WdFieldType.wdFieldPage);
 
-            footerParagraph.Range.InsertBefore($"{textBox_footer.Text} /");
+            footerParagraph.Range.InsertBefore($"{textBox2.Text} /");
 
             // Вставляем текст и дату после поля номера страницы
             footerParagraph.Range.InsertAfter("\n" + dateTextBox.Text.Replace(',', '.'));
