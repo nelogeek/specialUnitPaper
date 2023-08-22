@@ -116,6 +116,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <None Include="specialUnitPaper_TemporaryKey.pfx" />
+    <None Include="Times_New_Roman.ttf" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

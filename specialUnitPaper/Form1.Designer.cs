@@ -41,6 +41,7 @@
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.textBox_footer = new System.Windows.Forms.TextBox();
+            this.label5 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.StartNumberNumeric)).BeginInit();
             this.SuspendLayout();
             // 
@@ -72,7 +73,7 @@
             // StartNumberNumeric
             // 
             this.StartNumberNumeric.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.StartNumberNumeric.Location = new System.Drawing.Point(112, 127);
+            this.StartNumberNumeric.Location = new System.Drawing.Point(112, 133);
             this.StartNumberNumeric.Name = "StartNumberNumeric";
             this.StartNumberNumeric.Size = new System.Drawing.Size(48, 21);
             this.StartNumberNumeric.TabIndex = 2;
@@ -121,7 +122,7 @@
             // 
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label1.Location = new System.Drawing.Point(22, 129);
+            this.label1.Location = new System.Drawing.Point(22, 135);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(84, 15);
             this.label1.TabIndex = 6;
@@ -177,6 +178,16 @@
             this.textBox_footer.TabIndex = 10;
             this.textBox_footer.Text = "Учтенный лист № 19с";
             // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.label5.Location = new System.Drawing.Point(22, 133);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(84, 15);
+            this.label5.TabIndex = 6;
+            this.label5.Text = "Нумерация с ";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -187,6 +198,7 @@
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.dateTextBox);
+            this.Controls.Add(this.label5);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.checkBox_doublePrint);
@@ -194,7 +206,8 @@
             this.Controls.Add(this.StartNumberNumeric);
             this.Controls.Add(this.infoLabel);
             this.Controls.Add(this.buttonSelectFile);
-            this.MinimumSize = new System.Drawing.Size(298, 345);
+            this.MaximumSize = new System.Drawing.Size(319, 362);
+            this.MinimumSize = new System.Drawing.Size(319, 362);
             this.Name = "Form1";
             this.Text = "Маркировка";
             this.Load += new System.EventHandler(this.Form1_Load);
@@ -218,6 +231,7 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.TextBox textBox_footer;
+        private System.Windows.Forms.Label label5;
     }
 }
 

@@ -16,6 +16,7 @@ using iTextSharp.text;
 using iTextSharp.text.pdf;
 using iTextSharp.text.pdf.parser;
 using Microsoft.Office.Interop.Word;
+using System.Diagnostics;
 
 namespace specialUnitPaper
 {
@@ -60,15 +61,27 @@ namespace specialUnitPaper
         {
             infoLabel.Text = "Процесс маркировки запущен";
 
-            func();
+            //func();
+            func_pdf();
 
             infoLabel.Text = "Генерация завершена";
 
-            openDoc(newFilePath);
+            //openDoc(newFilePath);
 
         }
 
-
+        public void OpenPDFDocument(string pdfFilePath)
+        {
+            try
+            {
+                Process.Start(pdfFilePath);
+            }
+            catch (Exception ex)
+            {
+                // Обработка ошибок, например, если файл не найден или возникла ошибка при открытии
+                Console.WriteLine("Ошибка при открытии PDF: " + ex.Message);
+            }
+        }
 
         private void func()
         {
@@ -92,9 +105,9 @@ namespace specialUnitPaper
                 string modifiedPdfFilePath = AddEmptyPages(pdfFilePath);
 
                 // Конвертировать PDF обратно в документ Word
-                string finalDocxFilePath = ConvertToDocx(modifiedPdfFilePath, newFilePath);
+                string DocxFilePath = ConvertToDocx(modifiedPdfFilePath, newFilePath);
 
-                addFooters(finalDocxFilePath);
+                addFooters(DocxFilePath);
 
                 deleteTempFiles(pdfFilePath, modifiedPdfFilePath);
 
@@ -105,11 +118,43 @@ namespace specialUnitPaper
                 // Обработка исключения, когда файл не найден
                 MessageBox.Show("Файл не найден: " + ex.FileName, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Произошла ошибка: " + ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            
+
+
+        }
+
+        private void func_pdf()
+        {
+
+            string sourceFolderPath = System.IO.Path.GetDirectoryName(selectedFilePath);
+
+            string fileName = System.IO.Path.GetFileName(selectedFilePath);
+
+            newFilePath = System.IO.Path.Combine(sourceFolderPath, "копия_" + fileName);
+
+            File.Copy(selectedFilePath, newFilePath, true);
+
+            // Конвертировать документ в PDF
+            string pdfFilePath = ConvertDocxToPdf(newFilePath);
+
+            // Добавить пустые страницы через одну
+            string modifiedPdfFilePath = AddEmptyPages(pdfFilePath);
+
+            // Добавить колонтитулы
+            string finalPath = addFooters_pdf(modifiedPdfFilePath);
+
+            deleteTempFiles_pdf(newFilePath, pdfFilePath, modifiedPdfFilePath);
+
+            OpenPDFDocument(finalPath);
+
+            Console.WriteLine("Процесс завершен.");
+
+        }
+
+        static void deleteTempFiles_pdf(string newFilePath, string pdfFilePath, string modifiedPdfFilePath)
+        {
+            DeleteFileIfExists(newFilePath);
+            DeleteFileIfExists(pdfFilePath);
+            DeleteFileIfExists(modifiedPdfFilePath);
         }
 
         static void deleteTempFiles(string pdfFilePath, string modifiedPdfFilePath)
@@ -121,16 +166,114 @@ namespace specialUnitPaper
 
         static void DeleteFileIfExists(string filePath)
         {
-            if (File.Exists(filePath))
+            try
             {
-                File.Delete(filePath);
-                Console.WriteLine($"Файл {filePath} удален");
+                if (File.Exists(filePath))
+                {
+                    File.Delete(filePath);
+                    Console.WriteLine($"Файл {filePath} удален");
+                }
+                else
+                {
+                    Console.WriteLine($"Файл {filePath} не удален");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                Console.WriteLine($"Файл {filePath} не удален");
+                MessageBox.Show("Ошибка удаления временных файлов: " + ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
+
+
+        private string addFooters_pdf(string path)
+        {
+            try
+            {
+                string oldFile = System.IO.Path.GetFullPath(path);
+                string watermarkedFile = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(path), "done_" + System.IO.Path.GetFileName(path).Replace("modified_", "").Replace("копия_", ""));
+                // Creating watermark on a separate layer
+                // Creating iTextSharp.text.pdf.PdfReader object to read the Existing PDF Document
+                PdfReader reader1 = new PdfReader(oldFile);
+                using (FileStream fs = new FileStream(watermarkedFile, FileMode.Create, FileAccess.Write, FileShare.None))
+                // Creating iTextSharp.text.pdf.PdfStamper object to write Data from iTextSharp.text.pdf.PdfReader object to FileStream object
+                using (PdfStamper stamper = new PdfStamper(reader1, fs))
+                {
+                    // Getting total number of pages of the Existing Document
+                    int pageCount = reader1.NumberOfPages;
+
+                    // Create New Layer for Watermark
+                    PdfLayer layer = new PdfLayer("Layer", stamper.Writer);
+
+                    string projectDirectory = AppDomain.CurrentDomain.BaseDirectory;
+                    //MessageBox.Show(projectDirectory);
+                    string fontPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Times_New_Roman.ttf");
+                    BaseFont baseFont = BaseFont.CreateFont(fontPath, BaseFont.IDENTITY_H, BaseFont.NOT_EMBEDDED);
+                    iTextSharp.text.Font font = new iTextSharp.text.Font(baseFont, iTextSharp.text.Font.DEFAULTSIZE, iTextSharp.text.Font.NORMAL);
+
+
+                    // Loop through each Page
+                    for (int i = 1; i <= pageCount; i++)
+                    {
+                        // Getting the Page Size
+                        iTextSharp.text.Rectangle rect = reader1.GetPageSize(i);
+
+                        // Get the ContentByte object
+                        PdfContentByte cb = stamper.GetOverContent(i);
+
+                        // Tell the cb that the next commands should be "bound" to this new layer
+                        cb.BeginLayer(layer);
+
+                        BaseFont bf = BaseFont.CreateFont(BaseFont.TIMES_ROMAN, BaseFont.CP1252, BaseFont.NOT_EMBEDDED);
+
+                        cb.SetColorFill(BaseColor.BLACK);
+                        cb.SetFontAndSize(/*bf*/ baseFont, 10);
+
+                        cb.BeginText();
+
+                        float up = 20;
+                        float padding = 30;
+                        if (checkBox_doublePrint.Checked)
+                        {
+
+                            if ((i + StartNumberNumeric.Value) % 2 == 0)
+                            {
+                                cb.ShowTextAligned(PdfContentByte.ALIGN_RIGHT, textBox2.Text, 560f - padding, 28f + up, 0);
+                                cb.ShowTextAligned(PdfContentByte.ALIGN_RIGHT, DateTime.TryParse(dateTextBox.Text, out DateTime date) ? date.ToString("dd.MM.yyyy") : "Invalid date", 560f - padding, 15f + up, 0);
+                            }
+                            else
+                            {
+                                cb.ShowTextAligned(PdfContentByte.ALIGN_LEFT, $"{textBox_footer.Text} /{i + StartNumberNumeric.Value - 1}", 35f + padding, 28f + up, 0);
+                                cb.ShowTextAligned(PdfContentByte.ALIGN_LEFT, DateTime.TryParse(dateTextBox.Text, out DateTime date) ? date.ToString("dd.MM.yyyy") : "Invalid date", 35f + padding, 15f + up, 0);
+                            }
+
+                        }
+                        else
+                        {
+                            cb.ShowTextAligned(PdfContentByte.ALIGN_LEFT, $"{textBox_footer.Text} /{i + StartNumberNumeric.Value - 1}", 35f + padding, 28f + up, 0);
+                            cb.ShowTextAligned(PdfContentByte.ALIGN_LEFT, DateTime.TryParse(dateTextBox.Text, out DateTime date) ? date.ToString("dd.MM.yyyy") : "Invalid date", 35f + padding, 15f + up, 0);
+                        }
+
+
+                        cb.EndText();
+
+                        // Close the layer
+                        cb.EndLayer();
+                    }
+                }
+                reader1.Close();
+
+                return watermarkedFile;
+            }
+
+            catch (Exception ex)
+            {
+                // Обработка исключения, когда файл не найден
+                MessageBox.Show("Ошибка добавления колонтитула: " + ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return "-1";
+            }
+        }
+
 
         private void addFooters(string filePath)
         {
@@ -149,6 +292,8 @@ namespace specialUnitPaper
                 if (checkBox_doublePrint.Checked)
                 {
                     addFootersDoublePrint(doc);
+                    //TODO сделать независимые колонтитулы
+                    //addIndependentFootersToAllPages(doc);
                 }
                 else
                 {
@@ -160,7 +305,7 @@ namespace specialUnitPaper
             finally
             {
                 // Закрываем документ и приложение
-                
+
                 doc?.Close();
                 wordApp.Quit();
                 ReleaseComObject(doc);
@@ -168,7 +313,7 @@ namespace specialUnitPaper
             }
         }
 
-        
+
 
 
         private void addFootersDoublePrint(Word.Document doc)
@@ -193,7 +338,7 @@ namespace specialUnitPaper
             evenPageFooter.PageNumbers.RestartNumberingAtSection = true;
             evenPageFooter.PageNumbers.StartingNumber = (int)StartNumberNumeric.Value; // номер первой страницы
 
-            #region колонтитул четной страницы
+            #region колонтитул нечетной страницы
             // колонтитул нечетной страницы
             Word.Paragraph oddPageFooterParagraph = oddPageFooter.Range.Paragraphs.Add();
             oddPageFooterParagraph.Range.ParagraphFormat.Alignment = Word.WdParagraphAlignment.wdAlignParagraphLeft;
@@ -214,7 +359,7 @@ namespace specialUnitPaper
             //paragraphRange.Fields.Add(paragraphRange, Word.WdFieldType.wdFieldPage, "page", false);
             rangeCell.InsertBefore($"{textBox2.Text}");
             rangeCell.InsertAfter(/*"\n" + */ dateTextBox.Text.Replace(',', '.'));
-            
+
 
             rangeCell.ParagraphFormat.Alignment = Word.WdParagraphAlignment.wdAlignParagraphRight;
 
@@ -226,7 +371,7 @@ namespace specialUnitPaper
 
 
 
-            #region колонтитул нечетной страницы
+            #region колонтитул четной страницы
             Word.Paragraph evenPageFooterParagraph = evenPageFooter.Range.Paragraphs.Add();
             evenPageFooterParagraph.Range.ParagraphFormat.Alignment = Word.WdParagraphAlignment.wdAlignParagraphLeft;
 
@@ -244,9 +389,18 @@ namespace specialUnitPaper
             paragraphRange = paragraphCell.Range;
 
             // Вставляем текст и дату после поля номера страницы
-            paragraphRange.Fields.Add(paragraphRange, Word.WdFieldType.wdFieldPage, "page", false);
-            rangeCelln.InsertBefore($"{textBox_footer.Text} /");
-            rangeCelln.InsertAfter("\n" + dateTextBox.Text.Replace(',', '.'));
+            //paragraphRange.Fields.Add(paragraphRange, WdFieldType.wdFieldEmpty, "PAGE \\* MERGEFORMAT", true);
+            /*Field field = paragraphRange.Fields.Add(paragraphRange, WdFieldType.wdFieldExpression, "{ PAGE }/2");
+
+            field.Update();*/
+
+            Field field = paragraphRange.Fields.Add(paragraphRange, WdFieldType.wdFieldExpression, "PAGE");
+
+            field.Update();
+
+            //rangeCelln.InsertAfter(field.Result.Text);
+            //rangeCelln.InsertBefore($"{textBox_footer.Text} /");
+            //rangeCelln.InsertAfter("\n" + dateTextBox.Text.Replace(',', '.'));
 
             rangeCelln.ParagraphFormat.Alignment = Word.WdParagraphAlignment.wdAlignParagraphLeft;
 
@@ -269,7 +423,39 @@ namespace specialUnitPaper
 
 
 
+        private void addIndependentFootersToAllPages(Word.Document doc)
+        {
+            object oMissing = Type.Missing;
+            Object defaultTableBehavior = Word.WdDefaultTableBehavior.wdWord9TableBehavior;
+            Object autoFitBehavior = Word.WdAutoFitBehavior.wdAutoFitWindow;
 
+            for (int pageIndex = 2; pageIndex <= doc.Content.ComputeStatistics(Word.WdStatistic.wdStatisticPages + 1); pageIndex++)
+            {
+                Word.Range currentPageRange = doc.GoTo(Word.WdGoToItem.wdGoToPage, Word.WdGoToDirection.wdGoToAbsolute, pageIndex);
+
+                // Создаем новую секцию для текущей страницы
+                Word.Section currentSection = currentPageRange.Sections[1];
+
+                // Создаем уникальные футеры для каждой секции
+                Word.HeaderFooter pageFooter = currentSection.Footers[Word.WdHeaderFooterIndex.wdHeaderFooterPrimary];
+                pageFooter.LinkToPrevious = false; // Отключаем связь с предыдущими колонтитулами
+
+                // Очищаем содержимое текущего футера (если нужно)
+                pageFooter.Range.Text = "";
+
+                // Добавляем текст и дату в футер
+                Word.Paragraph footerParagraph = pageFooter.Range.Paragraphs.Add();
+                footerParagraph.Range.Text = $"{textBox_footer.Text} /\n{dateTextBox.Text.Replace(',', '.')} / {pageIndex}";
+
+                // Выравнивание по центру
+                footerParagraph.Range.ParagraphFormat.Alignment = Word.WdParagraphAlignment.wdAlignParagraphCenter;
+
+                // Добавляем номер страницы в центр футера
+                Word.Range pageNumberRange = footerParagraph.Range.Paragraphs.Add().Range;
+                pageNumberRange.Collapse(Word.WdCollapseDirection.wdCollapseEnd);
+                pageNumberRange.Fields.Add(pageNumberRange, Word.WdFieldType.wdFieldPage, "\\* Arabic", false);
+            }
+        }
 
 
 
@@ -354,6 +540,10 @@ namespace specialUnitPaper
                 // Открываем документ Word
                 doc = wordApp.Documents.Open(docxFilePath);
 
+                // Настройка параметров страницы (формат A4)
+                doc.PageSetup.PaperSize = Word.WdPaperSize.wdPaperA4;
+                doc.PageSetup.Orientation = Word.WdOrientation.wdOrientPortrait;
+
                 // Сохраняем как PDF
                 doc.SaveAs2(pdfFilePath, WdSaveFormat.wdFormatPDF);
             }
@@ -409,8 +599,12 @@ namespace specialUnitPaper
 
                 return modifiedPdfFilePath;
             }
+
             catch (Exception ex)
             {
+                // Обработка исключения, когда файл не найден
+                MessageBox.Show("Ошибка добавления пустых страниц: " + ex.Message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
                 return "-1";
             }
 
@@ -428,6 +622,7 @@ namespace specialUnitPaper
 
             return finalDocxFilePath;
         }
+
 
     }
 }
