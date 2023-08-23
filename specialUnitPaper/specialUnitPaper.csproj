@@ -23,7 +23,7 @@
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
-    <ApplicationRevision>7</ApplicationRevision>
+    <ApplicationRevision>12</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -59,6 +59,9 @@
   </PropertyGroup>
   <PropertyGroup>
     <SignManifests>true</SignManifests>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RunPostBuildEvent>Always</RunPostBuildEvent>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="BouncyCastle.Crypto, Version=1.8.9.0, Culture=neutral, PublicKeyToken=0e99375e54769942">
@@ -116,7 +119,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <None Include="specialUnitPaper_TemporaryKey.pfx" />
-    <None Include="Times_New_Roman.ttf" />
+    <Content Include="Times_New_Roman.ttf" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -140,8 +143,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>mkdir "C:\Fonts"
-copy "$(ProjectDir)Times_New_Roman.ttf" "C:\Fonts"
-</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
 </Project>

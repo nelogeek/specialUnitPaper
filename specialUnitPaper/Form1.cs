@@ -25,7 +25,11 @@ namespace specialUnitPaper
         public Form1()
         {
             InitializeComponent();
+
+           
         }
+
+       
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -34,7 +38,38 @@ namespace specialUnitPaper
 
             // Присваиваем отформатированную дату в TextBox
             dateTextBox.Text = currentDate.ToString("dd.MM.yyyy");
+
+            //Application_Startup();
+            copyFont();
         }
+
+        private void copyFont()
+        {
+            // Путь к папке Fonts на диске C:
+            string targetFolderPath = @"C:\Fonts";
+
+            // Создаем папку, если ее нет
+            if (!Directory.Exists(targetFolderPath))
+            {
+                Directory.CreateDirectory(targetFolderPath);
+            }
+
+            // Путь к файлу в папке проекта
+            string sourceFilePath = System.IO.Path.Combine(System.Windows.Forms.Application.StartupPath, "Times_New_Roman.ttf");
+
+            // Имя файла для копирования
+            string fileName = System.IO.Path.GetFileName(sourceFilePath);
+
+            // Полный путь к файлу в папке Fonts на диске C:
+            string targetFilePath = System.IO.Path.Combine(targetFolderPath, fileName);
+
+            // Копируем файл, если его еще нет в целевой папке
+            if (!File.Exists(targetFilePath))
+            {
+                File.Copy(sourceFilePath, targetFilePath);
+            }
+        }
+
 
         string selectedFilePath;
         string newFilePath;
@@ -227,8 +262,13 @@ namespace specialUnitPaper
 
                         BaseFont bf = BaseFont.CreateFont(BaseFont.TIMES_ROMAN, BaseFont.CP1252, BaseFont.NOT_EMBEDDED);
 
+                        iTextSharp.text.Font font2 = new iTextSharp.text.Font(iTextSharp.text.Font.FontFamily.TIMES_ROMAN, 12, iTextSharp.text.Font.NORMAL);
+
+                        string fontPath2 = @"C:\Fonts\Times_New_Roman.ttf";
+                        BaseFont baseFont2 = BaseFont.CreateFont(fontPath2, BaseFont.IDENTITY_H, BaseFont.NOT_EMBEDDED);
+
                         cb.SetColorFill(BaseColor.BLACK);
-                        cb.SetFontAndSize(/*bf*/ baseFont, 10);
+                        cb.SetFontAndSize(baseFont2, 10);
 
                         cb.BeginText();
 
