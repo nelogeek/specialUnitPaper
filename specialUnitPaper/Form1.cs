@@ -207,7 +207,8 @@ namespace specialUnitPaper
 
                     string projectDirectory = AppDomain.CurrentDomain.BaseDirectory;
                     //MessageBox.Show(projectDirectory);
-                    string fontPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Times_New_Roman.ttf");
+                    //string fontsFolderPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Fonts");
+                    string fontPath = "C:\\Fonts\\Times_New_Roman.ttf" ;
                     BaseFont baseFont = BaseFont.CreateFont(fontPath, BaseFont.IDENTITY_H, BaseFont.NOT_EMBEDDED);
                     iTextSharp.text.Font font = new iTextSharp.text.Font(baseFont, iTextSharp.text.Font.DEFAULTSIZE, iTextSharp.text.Font.NORMAL);
 
