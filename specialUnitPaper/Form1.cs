@@ -294,14 +294,14 @@ namespace specialUnitPaper
                         if (checkBox_doublePrint.Checked)
                         {
 
-                            if ((i + StartNumberNumeric.Value) % 2 == 0)
+                            if (i % 2 != 0)
                             {
                                 cb.ShowTextAligned(PdfContentByte.ALIGN_RIGHT, textBox2.Text, 560f - padding, 28f + up, 0);
                                 cb.ShowTextAligned(PdfContentByte.ALIGN_RIGHT, DateTime.TryParse(dateTextBox.Text, out DateTime date) ? date.ToString("dd.MM.yyyy") : "Invalid date", 560f - padding, 15f + up, 0);
                             }
                             else
                             {
-                                cb.ShowTextAligned(PdfContentByte.ALIGN_LEFT, $"{textBox_footer.Text} /{i + StartNumberNumeric.Value - 1}", 35f + padding, 28f + up, 0);
+                                cb.ShowTextAligned(PdfContentByte.ALIGN_LEFT, $"{textBox_footer.Text} /{i/2 + StartNumberNumeric.Value - 1}", 35f + padding, 28f + up, 0);
                                 cb.ShowTextAligned(PdfContentByte.ALIGN_LEFT, DateTime.TryParse(dateTextBox.Text, out DateTime date) ? date.ToString("dd.MM.yyyy") : "Invalid date", 35f + padding, 15f + up, 0);
                             }
 
