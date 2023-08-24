@@ -170,12 +170,27 @@ namespace specialUnitPaper
 
             // Конвертировать документ в PDF
             string pdfFilePath = ConvertDocxToPdf(newFilePath);
+            if (pdfFilePath == "-1")
+            {
+                infoLabel.Text = "Генерация завершена с ошибкой";
+                return;
+            }
 
             // Добавить пустые страницы через одну
             string modifiedPdfFilePath = AddEmptyPages(pdfFilePath);
+            if (modifiedPdfFilePath == "-1")
+            {
+                infoLabel.Text = "Генерация завершена с ошибкой";
+                return;
+            }
 
             // Добавить колонтитулы
             string finalPath = addFooters_pdf(modifiedPdfFilePath);
+            if (finalPath == "-1")
+            {
+                infoLabel.Text = "Генерация завершена с ошибкой";
+                return;
+            }
 
             deleteTempFiles_pdf(newFilePath, pdfFilePath, modifiedPdfFilePath);
 
@@ -184,6 +199,8 @@ namespace specialUnitPaper
             Console.WriteLine("Процесс завершен.");
 
         }
+
+       
 
         static void deleteTempFiles_pdf(string newFilePath, string pdfFilePath, string modifiedPdfFilePath)
         {
@@ -587,10 +604,13 @@ namespace specialUnitPaper
 
                 // Сохраняем как PDF
                 doc.SaveAs2(pdfFilePath, WdSaveFormat.wdFormatPDF);
+
+                return pdfFilePath;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Ошибка при конвертации в PDF: {ex.Message}");
+                return "-1";
             }
             finally
             {
@@ -601,7 +621,7 @@ namespace specialUnitPaper
                 ReleaseComObject(wordApp);
             }
 
-            return pdfFilePath;
+            
         }
 
         // Метод для явного освобождения COM-объектов
