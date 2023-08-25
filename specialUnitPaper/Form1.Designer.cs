@@ -42,6 +42,7 @@
             this.label4 = new System.Windows.Forms.Label();
             this.textBox_footer = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
+            this.progressBar = new System.Windows.Forms.ProgressBar();
             ((System.ComponentModel.ISupportInitialize)(this.StartNumberNumeric)).BeginInit();
             this.SuspendLayout();
             // 
@@ -59,7 +60,7 @@
             // infoLabel
             // 
             this.infoLabel.AutoSize = true;
-            this.infoLabel.Location = new System.Drawing.Point(19, 301);
+            this.infoLabel.Location = new System.Drawing.Point(19, 296);
             this.infoLabel.MaximumSize = new System.Drawing.Size(258, 13);
             this.infoLabel.MinimumSize = new System.Drawing.Size(35, 13);
             this.infoLabel.Name = "infoLabel";
@@ -109,6 +110,7 @@
             // 
             // button1
             // 
+            this.button1.Enabled = false;
             this.button1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
             this.button1.Location = new System.Drawing.Point(185, 249);
             this.button1.Name = "button1";
@@ -188,11 +190,19 @@
             this.label5.TabIndex = 6;
             this.label5.Text = "Нумерация с ";
             // 
+            // progressBar
+            // 
+            this.progressBar.Location = new System.Drawing.Point(-2, 318);
+            this.progressBar.Name = "progressBar";
+            this.progressBar.Size = new System.Drawing.Size(306, 10);
+            this.progressBar.TabIndex = 12;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(303, 323);
+            this.Controls.Add(this.progressBar);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.textBox_footer);
             this.Controls.Add(this.label3);
@@ -232,6 +242,7 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.TextBox textBox_footer;
         private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.ProgressBar progressBar;
     }
 }
 
