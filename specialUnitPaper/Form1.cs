@@ -18,7 +18,7 @@ namespace specialUnitPaper
         private BackgroundWorker worker;
         string selectedFilePath = null;
         string newFilePath = null;
-
+        static bool verticalOrientation = false;
 
         public Form1()
         {
@@ -371,25 +371,53 @@ namespace specialUnitPaper
 
                         float up = 20;
                         float padding = 30;
-                        if (checkBox_doublePrint.Checked)
+                        if (verticalOrientation)
                         {
 
-                            if (i % 2 != 0)
+
+                            if (checkBox_doublePrint.Checked)
                             {
-                                cb.ShowTextAligned(PdfContentByte.ALIGN_RIGHT, textBox2.Text, 560f - padding, 28f + up, 0);
-                                cb.ShowTextAligned(PdfContentByte.ALIGN_RIGHT, DateTime.TryParse(dateTextBox.Text, out DateTime date) ? date.ToString("dd.MM.yyyy") : "Invalid date", 560f - padding, 15f + up, 0);
+
+                                if (i % 2 != 0)
+                                {
+                                    cb.ShowTextAligned(PdfContentByte.ALIGN_RIGHT, textBox2.Text, 560f - padding, 28f + up, 0);
+                                    cb.ShowTextAligned(PdfContentByte.ALIGN_RIGHT, DateTime.TryParse(dateTextBox.Text, out DateTime date) ? date.ToString("dd.MM.yyyy") : "Invalid date", 560f - padding, 15f + up, 0);
+                                }
+                                else
+                                {
+                                    cb.ShowTextAligned(PdfContentByte.ALIGN_LEFT, $"{textBox_footer.Text} /{i / 2 + StartNumberNumeric.Value - 1}", 35f + padding, 28f + up, 0);
+                                    cb.ShowTextAligned(PdfContentByte.ALIGN_LEFT, DateTime.TryParse(dateTextBox.Text, out DateTime date) ? date.ToString("dd.MM.yyyy") : "Invalid date", 35f + padding, 15f + up, 0);
+                                }
+
                             }
                             else
                             {
-                                cb.ShowTextAligned(PdfContentByte.ALIGN_LEFT, $"{textBox_footer.Text} /{i/2 + StartNumberNumeric.Value - 1}", 35f + padding, 28f + up, 0);
+                                cb.ShowTextAligned(PdfContentByte.ALIGN_LEFT, $"{textBox_footer.Text} /{i + StartNumberNumeric.Value - 1}", 35f + padding, 28f + up, 0);
                                 cb.ShowTextAligned(PdfContentByte.ALIGN_LEFT, DateTime.TryParse(dateTextBox.Text, out DateTime date) ? date.ToString("dd.MM.yyyy") : "Invalid date", 35f + padding, 15f + up, 0);
                             }
-
                         }
                         else
                         {
-                            cb.ShowTextAligned(PdfContentByte.ALIGN_LEFT, $"{textBox_footer.Text} /{i + StartNumberNumeric.Value - 1}", 35f + padding, 28f + up, 0);
-                            cb.ShowTextAligned(PdfContentByte.ALIGN_LEFT, DateTime.TryParse(dateTextBox.Text, out DateTime date) ? date.ToString("dd.MM.yyyy") : "Invalid date", 35f + padding, 15f + up, 0);
+                            if (checkBox_doublePrint.Checked)
+                            {
+
+                                if (i % 2 != 0)
+                                {
+                                    cb.ShowTextAligned(PdfContentByte.ALIGN_RIGHT, textBox2.Text, 805f - padding, 28f + up, 0);
+                                    cb.ShowTextAligned(PdfContentByte.ALIGN_RIGHT, DateTime.TryParse(dateTextBox.Text, out DateTime date) ? date.ToString("dd.MM.yyyy") : "Invalid date", 805f - padding, 15f + up, 0);
+                                }
+                                else
+                                {
+                                    cb.ShowTextAligned(PdfContentByte.ALIGN_LEFT, $"{textBox_footer.Text} /{i / 2 + StartNumberNumeric.Value - 1}", 35f + padding, 28f + up, 0);
+                                    cb.ShowTextAligned(PdfContentByte.ALIGN_LEFT, DateTime.TryParse(dateTextBox.Text, out DateTime date) ? date.ToString("dd.MM.yyyy") : "Invalid date", 35f + padding, 15f + up, 0);
+                                }
+
+                            }
+                            else
+                            {
+                                cb.ShowTextAligned(PdfContentByte.ALIGN_LEFT, $"{textBox_footer.Text} /{i + StartNumberNumeric.Value - 1}", 35f + padding, 28f + up, 0);
+                                cb.ShowTextAligned(PdfContentByte.ALIGN_LEFT, DateTime.TryParse(dateTextBox.Text, out DateTime date) ? date.ToString("dd.MM.yyyy") : "Invalid date", 35f + padding, 15f + up, 0);
+                            }
                         }
 
 
@@ -436,7 +464,16 @@ namespace specialUnitPaper
 
                 // Настройка параметров страницы (формат A4)
                 doc.PageSetup.PaperSize = Word.WdPaperSize.wdPaperA4;
-                doc.PageSetup.Orientation = Word.WdOrientation.wdOrientPortrait;
+                if (doc.PageSetup.Orientation == Word.WdOrientation.wdOrientPortrait)
+                {
+                    verticalOrientation = true;
+                    doc.PageSetup.Orientation = Word.WdOrientation.wdOrientPortrait;
+                }
+                else
+                {
+                    verticalOrientation = false;
+                    doc.PageSetup.Orientation = Word.WdOrientation.wdOrientLandscape;
+                }
 
                 // Сохраняем как PDF
                 doc.SaveAs2(pdfFilePath, Word.WdSaveFormat.wdFormatPDF);
@@ -489,7 +526,13 @@ namespace specialUnitPaper
                 int total = reader.NumberOfPages + 1;
                 for (int pageNumber = total; pageNumber > 1; pageNumber--)
                 {
-                    stamper.InsertPage(pageNumber, PageSize.A4);
+                    if (verticalOrientation)
+                    {
+                        stamper.InsertPage(pageNumber, PageSize.A4);
+                    }
+                    else{
+                        stamper.InsertPage(pageNumber, PageSize.A4.Rotate());
+                    }
                 }
                 stamper.Close();
                 reader.Close();
