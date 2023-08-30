@@ -43,13 +43,14 @@
             this.textBox_footer = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
             this.progressBar = new System.Windows.Forms.ProgressBar();
+            this.checkBox1 = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.StartNumberNumeric)).BeginInit();
             this.SuspendLayout();
             // 
             // buttonSelectFile
             // 
             this.buttonSelectFile.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.buttonSelectFile.Location = new System.Drawing.Point(22, 249);
+            this.buttonSelectFile.Location = new System.Drawing.Point(22, 265);
             this.buttonSelectFile.Name = "buttonSelectFile";
             this.buttonSelectFile.Size = new System.Drawing.Size(145, 33);
             this.buttonSelectFile.TabIndex = 0;
@@ -60,7 +61,7 @@
             // infoLabel
             // 
             this.infoLabel.AutoSize = true;
-            this.infoLabel.Location = new System.Drawing.Point(19, 296);
+            this.infoLabel.Location = new System.Drawing.Point(19, 316);
             this.infoLabel.MaximumSize = new System.Drawing.Size(258, 13);
             this.infoLabel.MinimumSize = new System.Drawing.Size(35, 13);
             this.infoLabel.Name = "infoLabel";
@@ -107,12 +108,13 @@
             this.checkBox_doublePrint.TabIndex = 4;
             this.checkBox_doublePrint.Text = "Двусторонняя печать";
             this.checkBox_doublePrint.UseVisualStyleBackColor = true;
+            this.checkBox_doublePrint.CheckedChanged += new System.EventHandler(this.checkBox_doublePrint_CheckedChanged);
             // 
             // button1
             // 
             this.button1.Enabled = false;
             this.button1.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.button1.Location = new System.Drawing.Point(185, 249);
+            this.button1.Location = new System.Drawing.Point(185, 265);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(95, 33);
             this.button1.TabIndex = 5;
@@ -192,16 +194,30 @@
             // 
             // progressBar
             // 
-            this.progressBar.Location = new System.Drawing.Point(-2, 318);
+            this.progressBar.Location = new System.Drawing.Point(-2, 339);
             this.progressBar.Name = "progressBar";
             this.progressBar.Size = new System.Drawing.Size(306, 10);
             this.progressBar.TabIndex = 12;
+            // 
+            // checkBox1
+            // 
+            this.checkBox1.AutoSize = true;
+            this.checkBox1.Checked = true;
+            this.checkBox1.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBox1.Location = new System.Drawing.Point(22, 240);
+            this.checkBox1.Name = "checkBox1";
+            this.checkBox1.Size = new System.Drawing.Size(113, 17);
+            this.checkBox1.TabIndex = 13;
+            this.checkBox1.Text = "Генерация в PDF";
+            this.checkBox1.UseVisualStyleBackColor = true;
+            this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(303, 323);
+            this.ClientSize = new System.Drawing.Size(303, 346);
+            this.Controls.Add(this.checkBox1);
             this.Controls.Add(this.progressBar);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.textBox_footer);
@@ -216,7 +232,6 @@
             this.Controls.Add(this.StartNumberNumeric);
             this.Controls.Add(this.infoLabel);
             this.Controls.Add(this.buttonSelectFile);
-            this.MaximumSize = new System.Drawing.Size(319, 362);
             this.MinimumSize = new System.Drawing.Size(319, 362);
             this.Name = "Form1";
             this.Text = "Маркировка";
@@ -243,6 +258,7 @@
         private System.Windows.Forms.TextBox textBox_footer;
         private System.Windows.Forms.Label label5;
         private System.Windows.Forms.ProgressBar progressBar;
+        private System.Windows.Forms.CheckBox checkBox1;
     }
 }
 
