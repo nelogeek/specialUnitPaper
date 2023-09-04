@@ -94,7 +94,7 @@
             this.textBox2.Name = "textBox2";
             this.textBox2.Size = new System.Drawing.Size(258, 26);
             this.textBox2.TabIndex = 3;
-            this.textBox2.Text = "Уч. № 22с";
+            this.textBox2.Text = "Уч. №";
             // 
             // checkBox_doublePrint
             // 
@@ -180,7 +180,7 @@
             this.textBox_footer.Name = "textBox_footer";
             this.textBox_footer.Size = new System.Drawing.Size(258, 26);
             this.textBox_footer.TabIndex = 10;
-            this.textBox_footer.Text = "Учтенный лист № 19с";
+            this.textBox_footer.Text = "Учтенный лист №";
             // 
             // label5
             // 
